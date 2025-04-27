@@ -21,7 +21,7 @@ export default function Images() {
     const fetchImages = async () => {
       const currentUrl = new URL(window.location.href)
       const data = await fetch(`${currentUrl.origin}/api/images`)
-      const imageData = await data.json<R2Image[]>()
+      const imageData = await data.json() as R2Image[]
       setImages(imageData)
       console.log(imageData)
     }

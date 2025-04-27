@@ -20,9 +20,7 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": [
-        "@cloudflare/workers-types/2023-07-01"
-    ]
+    "types": []
   },
   "include": ["next-env.d.ts", "env-d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

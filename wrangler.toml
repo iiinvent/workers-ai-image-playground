@@ -12,4 +12,4 @@ bucket_name = "ai-img-playground"
 binding = "BUCKET"
 
 [vars]
-CLOUDFLARE_ACCOUNT_ID = "dc56444c4c955a1653106ccf997c1067"
+CLOUDFLARE_ACCOUNT_ID = "58b1b19c68acaef9ec1347796c8ef5dc"
