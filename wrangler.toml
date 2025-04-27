@@ -13,3 +13,4 @@ binding = "BUCKET"
 
 [vars]
 CLOUDFLARE_ACCOUNT_ID = "58b1b19c68acaef9ec1347796c8ef5dc"
+CLOUDFLARE_API_TOKEN = "gogO1poYuaXgoJkS3dVaWz4FHLtC48smqsZ_0s2R"

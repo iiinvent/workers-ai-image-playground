@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
   if (!model) return new Response("Model not specified", { status: 400 });
 
   const env = getRequestContext().env;
-  const { CLOUDFLARE_ACCOUNT_ID: account_id, CLOUDFLARE_API_TOKEN } = env;
+  const { CLOUDFLARE_ACCOUNT_ID: account_id } = env;
+  const CLOUDFLARE_API_TOKEN = (env as any).CLOUDFLARE_API_TOKEN;
 
   if (!account_id) return new Response("Account ID not specified", { status: 400 });
   if (!CLOUDFLARE_API_TOKEN) return new Response("API token not specified", { status: 400 });
@@ -21,18 +22,23 @@ export async function GET(request: NextRequest) {
     const client = new Cloudflare({
       apiToken: CLOUDFLARE_API_TOKEN,
     });
-
-    const schema = await client.workers.ai.models.schema.get({
-      account_id,
-      model,
-    });
-
+    let schema;
+    try {
+      schema = await client.workers.ai.models.schema.get({
+        account_id,
+        model,
+      });
+    } catch (cfError) {
+      console.error('Cloudflare API error:', cfError);
+      return new Response('Cloudflare API error', { status: 502 });
+    }
     return new Response(JSON.stringify(schema), {
       headers: {
         "Content-Type": "application/json",
       },
     });
   } catch (error: any) {
-    return new Response(error.message, { status: 500 });
+    console.error('Unexpected error in schema GET:', error);
+    return new Response(error?.message || 'Internal Server Error', { status: 500 });
   }
 }
