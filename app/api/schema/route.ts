@@ -8,37 +8,42 @@ import Cloudflare from "cloudflare";
 export const runtime = "edge";
 
 export async function GET(request: NextRequest) {
+  // Validate query param
   const model = request.nextUrl.searchParams.get("model");
-  if (!model) return new Response("Model not specified", { status: 400 });
+  if (!model) {
+    return new Response(JSON.stringify({ error: "Model not specified" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
+  // Get environment variables
   const env = getRequestContext().env;
-  const { CLOUDFLARE_ACCOUNT_ID: account_id } = env;
-  const CLOUDFLARE_API_TOKEN = (env as any).CLOUDFLARE_API_TOKEN;
+  const account_id = env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = env.CLOUDFLARE_API_TOKEN;
 
-  if (!account_id) return new Response("Account ID not specified", { status: 400 });
-  if (!CLOUDFLARE_API_TOKEN) return new Response("API token not specified", { status: 400 });
+  if (!account_id || !apiToken) {
+    return new Response(
+      JSON.stringify({ error: !account_id ? "Account ID not specified" : "API token not specified" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   try {
-    const client = new Cloudflare({
-      apiToken: CLOUDFLARE_API_TOKEN,
-    });
-    let schema;
-    try {
-      schema = await client.workers.ai.models.schema.get({
-        account_id,
-        model,
-      });
-    } catch (cfError) {
-      console.error('Cloudflare API error:', cfError);
-      return new Response('Cloudflare API error', { status: 502 });
-    }
+    const client = new Cloudflare({ apiToken });
+    const schema = await client.workers.ai.models.schema.get({ account_id, model });
     return new Response(JSON.stringify(schema), {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
-  } catch (error: any) {
-    console.error('Unexpected error in schema GET:', error);
-    return new Response(error?.message || 'Internal Server Error', { status: 500 });
+  } catch (err: any) {
+    // Cloudflare API error
+    const message = err?.message || "Cloudflare API error";
+    const status = err?.status === 401 ? 401 : 502;
+    console.error("Cloudflare API error in /api/schema:", err);
+    return new Response(
+      JSON.stringify({ error: message, details: err?.errors || undefined }),
+      { status, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
